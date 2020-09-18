@@ -120,27 +120,37 @@ const normalize = tensor =>
   );
 
 const createDataSets = (data, features, categoricalFeatures, testSize) => {
-  const X = data.map(r =>
+  const X = data.map(r =>{
+    if(r.Temp==="NAN"){
+      console.log(r)
+    }
     features.flatMap(f => {
       if (categoricalFeatures.has(f)) {
         return oneHot(!r[f] ? 0 : r[f], VARIABLE_CATEGORY_COUNT[f]);
       }
       return !r[f] ? 0 : r[f];
     })
-  );
-
-  const X_t = normalize(tf.tensor2d(X));
-  const y = tf.tensor(data.map(r=>(!r.DO ? "NAN" : 7)))
+});
+  console.log(X)
+    // X.forEach((element, index) => {
+    //   element.map(d=>{
+    //     if(d==='NAN'){
+    //       console.log(index)
+    //     }
+    //   })
+    // });
+  // const X_t = normalize(tf.tensor2d(X));
+  // const y = tf.tensor(data.map(r=>(!r.DO ? "NAN" : 7)))
   // data.map(r=>{
   //   console.log(r.DO)
   // })
   // const y = tf.tensor(data.map(r => (!r.SalePrice ? 0 : r.SalePrice)));
 
-  const splitIdx = parseInt((1 - testSize) * data.length, 10);
+  // const splitIdx = parseInt((1 - testSize) * data.length, 10);
 
-  const [xTrain, xTest] = tf.split(X_t, [splitIdx, data.length - splitIdx]);
-  const [yTrain, yTest] = tf.split(y, [splitIdx, data.length - splitIdx]);
-  return [xTrain, xTest, yTrain, yTest];
+  // const [xTrain, xTest] = tf.split(X_t, [splitIdx, data.length - splitIdx]);
+  // const [yTrain, yTest] = tf.split(y, [splitIdx, data.length - splitIdx]);
+  // return [xTrain, xTest, yTrain, yTest];
 };
 
 const trainLinearModel = async (xTrain, yTrain) => {
@@ -215,12 +225,12 @@ const run = async () => {
     0.1
   );
 
-  const linearModel = await trainLinearModel(xTrain, yTrain);
+  // const linearModel = await trainLinearModel(xTrain, yTrain);
 
-  const trueValues = yTest.dataSync();
-  const lmPreds = linearModel.predict(xTest).dataSync();
-  console.log(trueValues)
-  console.log(lmPreds)
+  // const trueValues = yTest.dataSync();
+  // const lmPreds = linearModel.predict(xTest).dataSync();
+  // console.log(trueValues)
+  // console.log(lmPreds)
 
   // renderPredictions(trueValues, lmPreds);
 };
