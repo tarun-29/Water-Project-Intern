@@ -1,13 +1,15 @@
+
 import "./styles.css";
 
 import * as tf from "@tensorflow/tfjs";
 import * as tfvis from "@tensorflow/tfjs-vis";
 import * as Papa from "papaparse";
 import * as Plotly from "plotly.js-dist";
-import _ from "lodash";
+import _, { conforms } from "lodash";
+import { oneHot, variable } from "@tensorflow/tfjs";
 
-Papa.parsePromise = function(file) {
-  return new Promise(function(complete, error) {
+Papa.parsePromise = function (file) {
+  return new Promise(function (complete, error) {
     Papa.parse(file, {
       header: true,
       download: true,
@@ -20,34 +22,12 @@ Papa.parsePromise = function(file) {
 
 const prepareData = async () => {
   const csv = await Papa.parsePromise(
-    "https://raw.githubusercontent.com/curiousily/Linear-Regression-with-TensorFlow-js/master/src/data/housing.csv"
+    "https://raw.githubusercontent.com/tarun-29/Water-Project-Intern/master/WebApp/src/data/cleandata.csv"
   );
 
   return csv.data;
 };
 
-const renderHistogram = (container, data, column, config) => {
-  const columnData = data.map(r => r[column]);
-
-  const columnTrace = {
-    name: column,
-    x: columnData,
-    type: "histogram",
-    opacity: 0.7,
-    marker: {
-      color: "dodgerblue"
-    }
-  };
-
-  Plotly.newPlot(container, [columnTrace], {
-    xaxis: {
-      title: config.xLabel,
-      range: config.range
-    },
-    yaxis: { title: "Count" },
-    title: config.title
-  });
-};
 
 const renderScatter = (container, data, columns, config) => {
   var trace = {
@@ -66,13 +46,37 @@ const renderScatter = (container, data, columns, config) => {
   Plotly.newPlot(container, chartData, {
     title: config.title,
     xaxis: {
-      title: config.xLabel
+      title: config.xLabel,
     },
     yaxis: { title: config.yLabel }
   });
 };
 
-const renderPredictions = (trueValues, slmPredictions, lmPredictions) => {
+const renderScatter1 = (container, data, columns, config) => {
+  var trace = {
+    x: data.map(r => r[columns[0]]),
+    y: data.map(r => r[columns[1]]),
+    mode: "markers",
+    type: "scatter",
+    opacity: 0.7,
+    marker: {
+      color: "dodgerblue"
+    }
+  };
+
+  var chartData = [trace];
+
+  Plotly.newPlot(container, chartData, {
+    title: config.title,
+    xaxis: {
+      title: config.xLabel,
+      range: [0, 14]
+    },
+    yaxis: { title: config.yLabel }
+  });
+};
+
+const renderPredictions = (trueValues, lmPredictions) => {
   var trace = {
     x: [...Array(trueValues.length).keys()],
     y: trueValues,
@@ -82,18 +86,6 @@ const renderPredictions = (trueValues, slmPredictions, lmPredictions) => {
     opacity: 0.5,
     marker: {
       color: "dodgerblue"
-    }
-  };
-
-  var slmTrace = {
-    x: [...Array(trueValues.length).keys()],
-    y: slmPredictions,
-    name: "pred",
-    mode: "lines+markers",
-    type: "scatter",
-    opacity: 0.5,
-    marker: {
-      color: "forestgreen"
     }
   };
 
@@ -109,34 +101,26 @@ const renderPredictions = (trueValues, slmPredictions, lmPredictions) => {
     }
   };
 
-  Plotly.newPlot("slm-predictions-cont", [trace, slmTrace], {
-    title: "Simple Linear Regression predictions",
-    yaxis: { title: "Price" }
-  });
-
   Plotly.newPlot("lm-predictions-cont", [trace, lmTrace], {
     title: "Linear Regression predictions",
-    yaxis: { title: "Price" }
+    yaxis: { title: "D.O (mg/l)" }
   });
 };
 
 const VARIABLE_CATEGORY_COUNT = {
-  OverallQual: 10,
-  GarageCars: 5,
-  FullBath: 4
+  Dummy: 10,
+  Gummy: 5,
 };
 
-// normalized = (value − min_value) / (max_value − min_value)
+
 const normalize = tensor =>
   tf.div(
     tf.sub(tensor, tf.min(tensor)),
     tf.sub(tf.max(tensor), tf.min(tensor))
   );
 
-const oneHot = (val, categoryCount) =>
-  Array.from(tf.oneHot(val, categoryCount).dataSync());
-
 const createDataSets = (data, features, categoricalFeatures, testSize) => {
+  console.log("dvnvdvdknvmdflkvndfivknvlijkn")
   const X = data.map(r =>
     features.flatMap(f => {
       if (categoricalFeatures.has(f)) {
@@ -145,16 +129,15 @@ const createDataSets = (data, features, categoricalFeatures, testSize) => {
       return !r[f] ? 0 : r[f];
     })
   );
-
+  console.log("XXxxxxxxxxx")
+  console.log(X)
   const X_t = normalize(tf.tensor2d(X));
-
-  const y = tf.tensor(data.map(r => (!r.SalePrice ? 0 : r.SalePrice)));
+  const y = tf.tensor(data.map(r=>(!r.DO ? "NAN" : 7)))
 
   const splitIdx = parseInt((1 - testSize) * data.length, 10);
 
   const [xTrain, xTest] = tf.split(X_t, [splitIdx, data.length - splitIdx]);
   const [yTrain, yTest] = tf.split(y, [splitIdx, data.length - splitIdx]);
-
   return [xTrain, xTest, yTrain, yTest];
 };
 
@@ -165,13 +148,13 @@ const trainLinearModel = async (xTrain, yTrain) => {
     tf.layers.dense({
       inputShape: [xTrain.shape[1]],
       units: xTrain.shape[1],
-      activation: "sigmoid"
+      activation: "softmax"
     })
   );
-  model.add(tf.layers.dense({ units: 1 }));
+  model.add(tf.layers.dense({ units: 1, activation: "relu" }));
 
   model.compile({
-    optimizer: tf.train.sgd(0.001),
+    optimizer: tf.train.sgd(0.01),
     loss: "meanSquaredError",
     metrics: [tf.metrics.meanAbsoluteError]
   });
@@ -186,7 +169,7 @@ const trainLinearModel = async (xTrain, yTrain) => {
     shuffle: true,
     validationSplit: 0.1,
     callbacks: {
-      onEpochEnd: async (epoch, logs) => {
+      onEpochEnd: async (epochs, logs) => {
         trainLogs.push({
           rmse: Math.sqrt(logs.loss),
           val_rmse: Math.sqrt(logs.val_loss),
@@ -205,73 +188,39 @@ const trainLinearModel = async (xTrain, yTrain) => {
 const run = async () => {
   const data = await prepareData();
 
-  renderHistogram("qual-cont", data, "OverallQual", {
-    title: "Overall material and finish quality (0-10)",
-    xLabel: "Score"
+  renderScatter("qual-price-cont", data, ["Temp", "DO"], {
+    title: "Temp vs D.O. (mg/l)",
+    xLabel: "Temp",
+    yLabel: "D.O. (mg/l)"
   });
 
-  renderHistogram("liv-area-cont", data, "GrLivArea", {
-    title: "Above grade (ground) living area square feet",
-    xLabel: "Area (sq. ft)"
+  renderScatter1("livarea-price-cont", data, ["PH", "DO"], {
+    title: "PH vs D.O. (mg/l)",
+    xLabel: "PH",
+    yLabel: "D.O. (mg/l)"
   });
-
-  renderHistogram("year-cont", data, "YearBuilt", {
-    title: "Original construction date",
-    xLabel: "Year"
-  });
-
-  renderScatter("year-price-cont", data, ["YearBuilt", "SalePrice"], {
-    title: "Year Built vs Price",
-    xLabel: "Year",
-    yLabel: "Price"
-  });
-
-  renderScatter("qual-price-cont", data, ["OverallQual", "SalePrice"], {
-    title: "Quality vs Price",
-    xLabel: "Quality",
-    yLabel: "Price"
-  });
-
-  renderScatter("livarea-price-cont", data, ["GrLivArea", "SalePrice"], {
-    title: "Living Area vs Price",
-    xLabel: "Living Area",
-    yLabel: "Price"
-  });
-
-  const [
-    xTrainSimple,
-    xTestSimple,
-    yTrainSimple,
-    yTestIgnored
-  ] = createDataSets(data, ["GrLivArea"], new Set(), 0.1);
-  const simpleLinearModel = await trainLinearModel(xTrainSimple, yTrainSimple);
 
   const features = [
-    "OverallQual",
-    "GrLivArea",
-    "GarageCars",
-    "TotalBsmtSF",
-    "FullBath",
-    "YearBuilt"
+    "PH",
+    "Temp"
   ];
-  const categoricalFeatures = new Set([
-    "OverallQual",
-    "GarageCars",
-    "FullBath"
-  ]);
+  const categoricalFeatures = new Set([]);
+
   const [xTrain, xTest, yTrain, yTest] = createDataSets(
     data,
     features,
     categoricalFeatures,
     0.1
   );
+
   const linearModel = await trainLinearModel(xTrain, yTrain);
 
   const trueValues = yTest.dataSync();
-  const slmPreds = simpleLinearModel.predict(xTestSimple).dataSync();
   const lmPreds = linearModel.predict(xTest).dataSync();
+  console.log(trueValues)
+  console.log(lmPreds)
 
-  renderPredictions(trueValues, slmPreds, lmPreds);
+  renderPredictions(trueValues, lmPreds);
 };
 
 if (document.readyState !== "loading") {
