@@ -36,3 +36,7 @@
     transform: rotate(360deg);
   }
 }
+
+#canvas-wrap { position:relative } /* Make this a positioned parent */
+#overlay     { position:absolute; height: 600px; width: 75vw; top:90px; left:180px;}
+
