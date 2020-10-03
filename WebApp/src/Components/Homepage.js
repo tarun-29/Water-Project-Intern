@@ -80,7 +80,7 @@ const options = {
             },
             scaleLabel: {
                 display: true,
-                labelString: 'Month',
+                labelString: 'Temperature',
                 fontColor: "white",
                 fontSize: 15
             }
@@ -96,7 +96,63 @@ const options = {
             },
             scaleLabel: {
                 display: true,
-                labelString: 'Value',
+                labelString: 'D.O(mg/L)',
+                fontColor: "white",
+                fontSize: 15
+            }
+        }]
+    }
+}
+
+const options1 = {
+    legend: {
+        labels: {
+            fontColor: "white",
+            fontSize: 18
+        }
+    },
+    responsive: true,
+    title: {
+        display: true,
+        fontColor: "white",
+        fontSize: 15,
+    },
+    // tooltips: {
+    //     mode: 'label',
+    // },
+    hover: {
+        mode: 'nearest',
+        intersect: true
+    },
+    scales: {
+        xAxes: [{
+            ticks: {
+                fontColor: "white",
+                fontSize: 15,
+            },
+            display: true,
+            gridLines: {
+                display: false,
+            },
+            scaleLabel: {
+                display: true,
+                labelString: 'PH',
+                fontColor: "white",
+                fontSize: 15
+            }
+        }],
+        yAxes: [{
+            ticks: {
+                fontColor: "white",
+                fontSize: 15,
+            },
+            display: true,
+            gridLines: {
+                display: false,
+            },
+            scaleLabel: {
+                display: true,
+                labelString: 'D.O(mg/L)',
                 fontColor: "white",
                 fontSize: 15
             }
@@ -112,7 +168,7 @@ const Temp = {
     labels: ['Scatter'],
     datasets: [
         {
-            label: 'PH vs D.O(mg/L)',
+            label: 'Temp vs D.O(mg/L)',
             fill: false,
             backgroundColor: 'rgba(75,192,192,0.4)',
             pointBorderColor: 'yellow',
@@ -133,7 +189,7 @@ const ph = {
     labels: ['Scatter'],
     datasets: [
         {
-            label: 'Temp vs D.O(mg/L)',
+            label: 'pH vs D.O(mg/L)',
             fill: false,
             backgroundColor: 'rgba(75,192,192,0.4)',
             // pointBorderColor: 'rgba(75,192,192,1)',
@@ -166,7 +222,7 @@ function Homepage() {
                             <Scatter data={Temp} options={options} height={300} width={400} />
                         </div>
                         <div >
-                            <Scatter data={ph} options={options} height={300} width={400} />
+                            <Scatter data={ph} options={options1} height={300} width={400} />
                         </div>
                     </div>
                 </div>
