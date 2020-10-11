@@ -1,0 +1,37 @@
+{
+  "expo": {
+    "name": "waterMonitoring",
+    "slug": "waterMonitoring",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "cover",
+      "backgroundColor": "#20B2AA"
+    },
+    "updates": {
+      "fallbackToCacheTimeout": 0
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true
+    },
+    "packagerOpts": {
+      "sourceExts": [
+        "ts",
+        "tsx",
+        "js"
+      ],
+      "transformer": "node_modules/react-native-typescript-transformer/index.js"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "android": {
+      "package": "com.kantiwal_tarun.waterMonitoring"
+    }
+  }
+}
