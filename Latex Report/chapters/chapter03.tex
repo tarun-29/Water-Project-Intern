@@ -1,0 +1,310 @@
+In this section we will talk about cleaning data using pandas and convert clean csv data into json using online csv to json converter and we will use sci-kit and tensorflow for two machine learning model Linear Regression and Artificial Neural Network in both Tensorflow and Sci-kit and later we will decide which model to use. In below subsection. first we will write little description of Data Cleaning and ML.\\
+
+\section{Data Cleaning}
+
+Data cleaning is the process of preparing data for analysis by removing or modifying data that is incorrect, incomplete, irrelevant, duplicated, or improperly formatted. This data is usually not necessary or helpful when it comes to analyzing data because it may hinder the process or provide inaccurate results. There are several methods for cleaning data depending on how it is stored along with the answers being sought. Data cleaning is not simply about erasing information to make space for new data, but rather finding a way to maximize a data set’s accuracy without necessarily deleting information. For one, data cleaning includes more actions than removing data, such as fixing spelling and syntax errors, standardizing data sets, and correcting mistakes such as empty fields, missing codes, and identifying duplicate data points. Data cleaning is considered a foundational element of the data science basics, as it plays an important role in the analytical process and uncovering reliable answers. Most importantly, the goal of data cleaning is to create data sets that are standardized and uniform to allow business intelligence and data analytics tools to easily access and find the right data for each query.
+
+\subsection{Pandas and Numpy}
+
+For the purpose of data cleaning we will use Pandas and Numpy as it is very easy to handle data in pandas dataframes and Numpy lib in python is very good library to handle array and manipulate array using advanced array methods.\\
+
+In this Project we have csv data of water with following properties\\
+
+STATION CODE,LOCATIONS,STATE,Temp,D.O. (mg/l),PH,CONDUCTIVITY (µmhos/cm),B.O.D. (mg/l),NITRATENAN N+ NITRITENANN (mg/l),FECAL COLIFORM (MPN/100ml),TOTAL COLIFORM (MPN/100ml)Mean,year.\\
+
+
+But the problem with this data is that the temp, ph and D.o is having some values which is not in scale and for example ph above 14 and and have value NAN in the temp, ph etc and the which we will need only temperature, ph and dissolved oxygen for our project so we will get all these clean data in new csv.
+
+\subsection{Machine Learning and Prediction}
+
+Machine learning is an application of artificial intelligence (AI) that provides systems the ability to automatically learn and improve from experience without being explicitly programmed. Machine learning focuses on the development of computer programs that can access data and use it learn for themselves.\\
+
+
+The process of learning begins with observations or data, such as examples, direct experience, or instruction, in order to look for patterns in data and make better decisions in the future based on the examples that we provide. The primary aim is to allow the computers learn automatically without human intervention or assistance and adjust actions accordingly.\\
+
+Below is the code of Predictions using Our data using Tensorflow and Sci-kit Learn and data clearning in pandas also done in same code.\\
+
+\begin{lstlisting}[language=python, caption={Linear regression Model Scikit}]
+
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+
+dataset = pd.read_csv("waterdata.csv", encoding= 'unicode_escape')
+
+dataset.describe()
+
+dataset["Temp"] = pd.to_numeric(dataset['Temp'], errors='coerce')
+dataset["Temp"] = dataset["Temp"].replace(np.nan, 0)
+dataset["PH"] = pd.to_numeric(dataset['PH'], errors='coerce')
+dataset["PH"] = dataset["PH"].replace(np.nan, 0)
+dataset["D.O. (mg/l)"] = pd.to_numeric(dataset['D.O. (mg/l)'], errors='coerce')
+dataset["D.O. (mg/l)"] = dataset["D.O. (mg/l)"].replace(np.nan, 0)
+# dataset["Temp"] = dataset["Temp"].fillna()
+
+y = dataset["D.O. (mg/l)"]
+
+X = dataset[["Temp", "PH"]]
+
+# X["Temp"] = X["Temp"].mean()
+# X["Temp"] = X[X["Temp"]==0].mean()
+
+# X["Temp"].mean()
+X["PH"].mean()
+
+dataset=dataset.mask(dataset["Temp"]==0).fillna(dataset["Temp"].mean())
+dataset=dataset.mask(dataset["PH"]==0).fillna(dataset["PH"].mean())
+dataset=dataset.mask(dataset["D.O. (mg/l)"]==0).fillna(dataset["D.O. (mg/l)"].mean())
+
+y = dataset["D.O. (mg/l)"]
+X = dataset[["Temp", "PH"]]
+X["PH"]
+
+from sklearn.model_selection import train_test_split
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=101)
+
+from sklearn.linear_model import LinearRegression
+
+lm = LinearRegression()
+
+lm.fit(X_train, y_train)
+
+lm.coef_
+
+predictions = lm.predict(X_test)
+
+# predictions
+# 0.07 0.0000032
+
+X_test.shape
+
+data = {'longitude':  [30.6],
+        'latitude': [7.5]}
+
+df = pd.DataFrame (data, columns = ['longitude','latitude'])
+
+df.shape
+
+answer = lm.predict(df)
+
+answer
+
+
+\end{lstlisting}\\
+
+\begin{lstlisting}[language=python, caption={Linear regression Model Tensorflow API}]
+
+# Commented out IPython magic to ensure Python compatibility.
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import tensorflow as tf
+plt.style.use("seaborn-colorblind")
+# %matplotlib inline
+
+used_features = ["Temp", "PH","D.O. (mg/l)"]
+water = pd.read_csv('waterdata.csv', usecols = used_features, encoding= 'unicode_escape')
+# m = pd.read_csv('waterdata.csv', encoding= 'unicode_escape')
+# target["D.O. (mg/l)"] = m["D.O. (mg/l)"]
+print(water.shape)
+water.head()
+# target.head()
+
+water["Temp"] = pd.to_numeric(water['Temp'], errors='coerce')
+water["Temp"] = water["Temp"].replace(np.nan, 0)
+water["PH"] = pd.to_numeric(water['PH'], errors='coerce')
+water["PH"] = water["PH"].replace(np.nan, 0)
+water["D.O. (mg/l)"] = pd.to_numeric(water["D.O. (mg/l)"], errors='coerce')
+water["D.O. (mg/l)"] = water["D.O. (mg/l)"].replace(np.nan, 0)
+
+water=water.mask(water["Temp"]==0).fillna(water["Temp"].mean())
+water=water.mask(water["PH"]==0).fillna(water["PH"].mean())
+water=water.mask(water["D.O. (mg/l)"]==0).fillna(water["D.O. (mg/l)"].mean())
+
+water
+
+target = water["D.O. (mg/l)"]
+features = water.drop('D.O. (mg/l)',axis=1)
+
+features
+
+target
+
+from sklearn.model_selection import train_test_split
+X_train, X_test, y_train, y_test = train_test_split(
+     water, target, test_size=0.33, random_state=42)
+
+# numeric_columns = ["Temp", "PH","D.O. (mg/l)"]
+numeric_columns = ["Temp", "PH"]
+X_train.drop('D.O. (mg/l)',axis=1, inplace=True)
+X_test.drop('D.O. (mg/l)',axis=1, inplace=True)
+X_test
+
+numeric_features = [tf.feature_column.numeric_column(key = column) for column in numeric_columns]
+print(numeric_features[0])
+
+linear_features = numeric_features
+
+training_input_fn = tf.compat.v1.estimator.inputs.pandas_input_fn(x=X_train, y=y_train, batch_size=32, shuffle=True, num_epochs=None)
+
+eval_input_fn = tf.compat.v1.estimator.inputs.pandas_input_fn(x=X_test, y=y_test, batch_size=32, shuffle=False, num_epochs = 1)
+
+linear_regressor = tf.estimator.LinearRegressor(feature_columns=linear_features,
+                                                model_dir = "linear_regressor")
+
+linear_regressor.train(input_fn = training_input_fn,steps=2000)
+
+linear_regressor.evaluate(input_fn = eval_input_fn)
+
+pred = list(linear_regressor.predict(input_fn = eval_input_fn))
+pred = [p['predictions'][0] for p in pred]
+
+prices = (pred)
+print(prices)
+
+X_test
+
+y_test
+
+predict_x = {
+    'Temp': [30.1],
+    'PH': [7.5],
+}
+
+def input_fn(features, batch_size=256):
+    """An input function for prediction."""
+    # Convert the inputs to a Dataset without labels.
+    return tf.data.Dataset.from_tensor_slices(dict(features)).batch(10)
+
+pred = linear_regressor.predict(
+    input_fn=lambda: input_fn(predict_x))
+
+pred
+
+pred = [p['predictions'][0] for p in pred]
+
+pred
+
+
+
+\end{lstlisting}\\
+
+\begin{lstlisting}[language=python, caption={ANN Model Tensorflow API}]
+
+
+import pandas as pd
+import numpy as np
+
+used_features = ["Temp", "PH","D.O. (mg/l)"]
+data = pd.read_csv("waterdata.csv", usecols = used_features, encoding= 'unicode_escape')
+
+data
+
+data["Temp"] = pd.to_numeric(data['Temp'], errors='coerce')
+data["Temp"] = data["Temp"].replace(np.nan, 0)
+data["PH"] = pd.to_numeric(data['PH'], errors='coerce')
+data["PH"] = data["PH"].replace(np.nan, 0)
+data["D.O. (mg/l)"] = pd.to_numeric(data["D.O. (mg/l)"], errors='coerce')
+data["D.O. (mg/l)"] = data["D.O. (mg/l)"].replace(np.nan, 0)
+
+data=data.mask(data["Temp"]==0).fillna(data["Temp"].mean())
+data=data.mask(data["PH"]==0).fillna(data["PH"].mean())
+data=data.mask(data["D.O. (mg/l)"]==0).fillna(data["D.O. (mg/l)"].mean())
+target = data["D.O. (mg/l)"]
+
+from sklearn.model_selection import train_test_split
+X_train, X_test, y_train, y_test = train_test_split(
+     data, target, test_size=0.33, random_state=42)
+
+X_train.head()
+
+train_X = X_train.drop(columns=['D.O. (mg/l)'])
+train_X.head()
+
+y_train.shape
+
+train_y = data[['D.O. (mg/l)']]
+train_y.head()
+
+import tensorflow as tf
+from tensorflow import keras
+from tensorflow.keras import layers
+import tensorflowjs as tfjs
+
+n_cols = train_X.shape[1]
+
+model = keras.Sequential(
+    [
+        layers.Dense(10, activation="relu", name="layer1",input_shape=(n_cols,)),
+        layers.Dense(3, activation="relu", name="layer2"),
+        layers.Dense(1, name="layer3"),
+    ]
+)
+
+model.compile(optimizer='adam', loss='mean_squared_error')
+
+from tensorflow.keras.callbacks import EarlyStopping
+
+early_stopping_monitor = EarlyStopping(patience=3)
+
+model.fit(train_X, train_y, validation_split=0.2, epochs=30, callbacks=[early_stopping_monitor])
+
+tfjs_target_dir = "./tfjs"
+
+tfjs.converters.save_keras_model(model, tfjs_target_dir)
+
+test_X = X_test.drop(columns=['D.O. (mg/l)'])
+test_X
+# test_y_predictions = model.predict(X_test)
+
+30.6,6.7,7.5
+
+data = [[30.6, 7.5]] 
+  
+# Create the pandas DataFrame 
+df = pd.DataFrame(data, columns = ['Temp', 'PH']) 
+  
+# print dataframe. 
+df
+
+# test_y_predictions = model.predict(test_X)
+test_y_predictions = model.predict(df)
+
+test_y_predictions
+
+
+\end{lstlisting}\\
+
+\subsection{Tensorflow or Sci-kit Which is Best ?}
+
+When it's come to which model is best the answer is might complicated because which one is suitable for our App or website is the main reason to think about.\\
+
+Sci-kit learn is a great library when it comes to simplicity and handling data sets on the other hand the tensorflow is slightly complicated because in tensorflow we have to deal with session to print and make calculation and also it deals with tensors so it is little bit difficult.\\
+
+But Tensorflow is a great framework for machine learning enthusiast beacuse it provide vast variety of api which handle machine learning task easily. Tensorflow is easy can be used in mobile apps ans Website because of its great community and it is handled by google Below are the framework which are developed by tensorflow community\\
+
+\begin{itemize}
+  \item Tensorflow (Main Python Framework Widely used )
+  \item Tensorflow.js (Use in Javascript web and app and node application)
+  \item Tensorflow Lite (For Mobile compatibility)
+\end{itemize}\\
+
+So, Tensorflow is a great option, as it provide great API which we will need in this project in Mobile App and in Web App.\\
+
+In this chapter we finished all the data handling cleaning, trained the machine learning model and exported them to make inferences from them in real time arduino data. Now we have to include them in React and iOS and Andriod Application.\\
+\\
+\\
+\\
+\\
+\\
+\\
+\\
+
+\\
+\\
+\\
+\\
+\\
+
+\includegraphics[width=1\textwidth]{images/tensorflow.png}\\
